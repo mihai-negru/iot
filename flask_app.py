@@ -67,7 +67,7 @@ def view():
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {token} is not registered'
+            message = f'Token {app.TOKENS} is not registered'
         )
     
     if not __validate_sensor(token, None):
