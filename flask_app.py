@@ -33,7 +33,7 @@ def homepage():
 
 @app.route('/generate_token', methods = ['GET'])
 def generate_token():
-    new_token = uuid.uuid4()
+    new_token = str(uuid.uuid4())
 
     app.TOKENS.append(new_token)
     app.TOKENS_DATA_LOCKS[new_token] = threading.Lock()
@@ -67,7 +67,7 @@ def view():
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {app.TOKENS} is not registered'
+            message = f'Token {token} is not registered'
         )
     
     if not __validate_sensor(token, None):
