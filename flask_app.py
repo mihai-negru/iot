@@ -3,6 +3,7 @@
 from flask import Flask, request, render_template, jsonify
 import threading
 import json
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -36,7 +37,10 @@ def homepage():
 def post_value():
     content = request.json
     if 'value' in content:
-        data_entry = { 'value': content['value'] }
+        data_entry = {
+            'x': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'y': content['value']
+        }
 
         with data_lock:
             data = read_data()
