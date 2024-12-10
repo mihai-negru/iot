@@ -11,6 +11,12 @@ app = Flask(__name__)
 DATA_FILE = '/var/www/html/iot/data/pico.json'
 data_lock = threading.Lock()
 
+# @app.route('/generate_token', methods = [''])
+@app.route('/', methods = ['GET'])
+def homepage():
+    return render_template('index.html')
+
+
 def read_data():
     try:
         with open(DATA_FILE, "r") as file:
@@ -29,9 +35,9 @@ def sensor_data():
 
     return jsonify(data)
 
-@app.route('/')
+@app.route('/view')
 def homepage():
-    return render_template('index.html')
+    return render_template('view.html')
 
 @app.route('/gas_sensor', methods=['POST'])
 def post_value():

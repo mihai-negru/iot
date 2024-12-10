@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <title>Gas Sensor Data</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Dashboard</title>
     <style>
         body {
             display: flex;
@@ -13,75 +12,68 @@
             height: 100vh;
             margin: 0;
             background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
         }
 
-        .chart-container {
-            height: 50vh; 
-            width: 50%;
+        .container {
+            width: 80%;
+            max-width: 600px;
             background: white;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             padding: 20px;
+            text-align: center;
         }
 
-        canvas {
-            display: block;
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        input {
+            padding: 10px;
+            width: 70%;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
-
 <body>
-    <div class="chart-container">
-        <canvas id="value-chart"></canvas>
+    <div class="container">
+        <h1>Welcome to the IoT Dashboard</h1>
+
+        <h2>Select an Option:</h2>
+
+        <!-- Form for generating token -->
+        <form action="/generate_token" method="POST">
+            <button type="submit">Generate Token</button>
+        </form>
+
+        <hr>
+
+        <!-- Form for viewing data -->
+        <form action="/view_token" method="GET">
+            <label for="token_input">Enter Token to View Data:</label><br>
+            <input type="text" id="token_input" name="token" required>
+            <button type="submit">View Data</button>
+        </form>
     </div>
-
-    <script>
-        const ctx = document.getElementById('value-chart');
-
-
-        // Initial empty data
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Gas Sensor Data',
-                        data: [],
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        display: false
-                    },
-                    y: {
-                        display: true,
-                        title: {
-                            display: true,
-                            text: 'Value'
-                        }
-                    }
-                }
-            }
-        });
-
-        async function updateChart() {
-            try {
-                const response = await axios.get('/sensor_data');
-                const data = response.data;
-
-                chart.data.datasets[0].data = data;
-                chart.update();
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        }
-
-        setInterval(updateChart, 500);
-    </script>
 </body>
-
 </html>
