@@ -70,7 +70,7 @@ def view():
             message = f'Token {token} is not registered'
         )
     
-    if not __validate_token(token, None):
+    if not __validate_sensor(token, None):
         return render_template(
             template_name_or_list = 'error.html',
             message = f'Token {token} has no sensor attached'
@@ -101,7 +101,7 @@ def view_data(token):
     if not __validate_token(token):
         return jsonify({'error': 'Bad token'}), 405
     
-    if not __validate_token(token, None):
+    if not __validate_sensor(token, None):
         return jsonify({'error': 'No sensor attached'}), 405
     
     data = __read__token_data(token)
@@ -112,7 +112,7 @@ def update_data(token):
     if not __validate_token(token):
         return jsonify({'error': 'Bad token'}), 405
     
-    if not __validate_token(token, request.remote_addr):
+    if not __validate_sensor(token, request.remote_addr):
         return jsonify({'error': 'Mismatch in sensors'}), 405
     
     body = request.json
