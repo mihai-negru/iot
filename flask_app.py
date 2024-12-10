@@ -35,10 +35,7 @@ def homepage():
 def generate_token():
     new_token = uuid.uuid4()
 
-    with app.TOKENS_LOCK:
-        with open(app.TOKENS, 'a') as fout:
-            fout.write(f'{new_token}\n')
-
+    app.TOKENS.append(new_token)
     app.TOKENS_DATA_LOCKS[new_token] = threading.Lock()
 
     return render_template(
