@@ -39,7 +39,7 @@ def generate_token():
         with open(app.TOKENS, 'a') as fout:
             fout.write(f'{new_token}\n')
 
-    app.TOKENS_DATA_LOCK[new_token] = threading.Lock()
+    app.TOKENS_DATA_LOCKS[new_token] = threading.Lock()
 
     return render_template(
         template_name_or_list = 'generated_token.html',
