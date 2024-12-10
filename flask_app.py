@@ -5,15 +5,33 @@ import threading
 import json
 from datetime import datetime
 import os
+import uuid
 
 app = Flask(__name__)
+
+app.DATA_FILE = '/var/www/html/iot/data'
+app.TOKENS = f'{app.DATA_FILE}/tokens.json'
+app.TOKENS_LOCK = threading.Lock()
 
 DATA_FILE = '/var/www/html/iot/data/pico.json'
 data_lock = threading.Lock()
 
 @app.route('/', methods = ['GET'])
 def homepage():
-    return render_template('index.html')
+    return render_template(template_name_or_list = 'index.html')
+
+@app.route('/generate_token', methods = ['GET'])
+def generate_token():
+    new_token = uuid.uuid4()
+
+    with app.TOKENS_LOCK:
+        with open(app.TOKENS, 'a') as fout:
+            fout.write(f'{new_token}\n')
+
+    return render_template(
+        template_name_or_list = 'generated_token.html',
+        token = new_token
+    )
 
 
 def read_data():
