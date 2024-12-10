@@ -60,7 +60,7 @@ def view():
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = 'Token is not registered'
+            message = f'Token {token} is not registered'
         )
 
     return render_template(
