@@ -47,13 +47,16 @@ def generate_token():
     )
 
 def __validate_token(token):
-    with app.TOKENS_LOCK:
-        with open(app.TOKENS, 'r') as fin:
-            tokens = fin.read()
+    try:
+        with app.TOKENS_LOCK:
+            with open(app.TOKENS, 'r') as fin:
+                tokens = fin.read()
 
-    tokens = tokens.splitlines()
+        tokens = tokens.splitlines()
 
-    return token in tokens
+        return token in tokens
+    except Exception:
+        return False
 
 @app.route('/view', methods = ['GET'])
 def view():
