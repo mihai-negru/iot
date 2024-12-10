@@ -35,10 +35,6 @@ def sensor_data():
 
     return jsonify(data)
 
-@app.route('/view')
-def homepage():
-    return render_template('view.html')
-
 @app.route('/gas_sensor', methods=['POST'])
 def post_value():
     content = request.json
