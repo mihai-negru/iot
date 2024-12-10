@@ -1,9 +1,9 @@
 #!/bin/usr/python
 
 from flask import Flask, request, render_template, jsonify
-from datetime import datetime
 import threading
 import json
+import os
 
 app = Flask(__name__)
 
@@ -36,10 +36,7 @@ def homepage():
 def post_value():
     content = request.json
     if 'value' in content:
-        data_entry = {
-            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "value": content['value']
-        }
+        data_entry = { 'value': content['value'] }
 
         with data_lock:
             data = read_data()
@@ -54,4 +51,5 @@ def post_value():
     return jsonify({"error": "Invalid payload"}), 400
 
 if __name__ == "__main__":
+    os.remove(DATA_FILE)
     app.run()
