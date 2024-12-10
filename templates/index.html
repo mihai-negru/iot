@@ -30,7 +30,7 @@
         }
 
         label {
-            margin-bottom: 10px;
+            margin: 10px;
         }
 
         h1 {
@@ -69,15 +69,13 @@
 
         <h2>Select an Option:</h2>
 
-        <!-- Form for generating token -->
-        <form action="/generate_token" method="POST">
+        <form action="/generate_token" method="GET">
             <button type="submit">Generate Token</button>
         </form>
 
         <hr>
 
-        <!-- Form for viewing data -->
-        <form action="/view_token" method="GET">
+        <form action="/view" method="GET">
             <label for="token_input">Enter Token to View Data:</label><br>
             <input type="text" id="token_input" name="token" required>
             <button type="submit">View Data</button>

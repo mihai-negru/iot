@@ -11,7 +11,6 @@ app = Flask(__name__)
 DATA_FILE = '/var/www/html/iot/data/pico.json'
 data_lock = threading.Lock()
 
-# @app.route('/generate_token', methods = [''])
 @app.route('/', methods = ['GET'])
 def homepage():
     return render_template('index.html')
