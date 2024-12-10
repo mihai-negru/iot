@@ -7,7 +7,7 @@ import json
 
 app = Flask(__name__)
 
-DATA_FILE = 'data/pico.json'
+DATA_FILE = '/var/www/html/iot/data/pico.json'
 data_lock = threading.Lock()
 
 def read_data():
