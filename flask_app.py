@@ -3,7 +3,7 @@
 from flask import Flask, request, render_template, jsonify
 import threading
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import uuid
 import shutil
@@ -12,9 +12,9 @@ app = Flask(__name__)
 
 app.DATA_FILE = '/var/www/html/iot/data'
 
-app.TOKENS = f'{app.DATA_FILE}/tokens'
-app.TOKENS_LOCK = threading.Lock()
-app.TOKENS_DATA_LOCKS = {} 
+app.TOKENS = []
+app.TOKENS_DATA_LOCKS = {}
+app.TOKENS_SENSOR = {}
 
 if os.path.exists(app.DATA_FILE):
     for filename in os.listdir(app.DATA_FILE):
@@ -47,16 +47,21 @@ def generate_token():
     )
 
 def __validate_token(token):
-    try:
-        with app.TOKENS_LOCK:
-            with open(app.TOKENS, 'r') as fin:
-                tokens = fin.read()
+    return token in app.TOKENS
 
-        tokens = tokens.splitlines()
-
-        return token in tokens
-    except Exception:
+def __validate_sensor(token, sensor):
+    if token not in app.TOKENS_SENSOR:
         return False
+    
+    if sensor is not None and app.TOKENS_SENSOR[token][0] != sensor:
+        return False
+
+    current_time = datetime.now()
+    if current_time >= app.TOKENS_SENSOR[token][1]:
+        del app.TOKENS_SENSOR[token]
+        return False
+    
+    return True
 
 @app.route('/view', methods = ['GET'])
 def view():
@@ -66,6 +71,12 @@ def view():
         return render_template(
             template_name_or_list = 'error.html',
             message = f'Token {token} is not registered'
+        )
+    
+    if not __validate_token(token, None):
+        return render_template(
+            template_name_or_list = 'error.html',
+            message = f'Token {token} has no sensor attached'
         )
 
     return render_template(
@@ -93,6 +104,9 @@ def view_data(token):
     if not __validate_token(token):
         return jsonify({'error': 'Bad token'}), 405
     
+    if not __validate_token(token, None):
+        return jsonify({'error': 'No sensor attached'}), 405
+    
     data = __read__token_data(token)
     return jsonify(data), 200
 
@@ -100,6 +114,9 @@ def view_data(token):
 def update_data(token):
     if not __validate_token(token):
         return jsonify({'error': 'Bad token'}), 405
+    
+    if not __validate_token(token, request.remote_addr):
+        return jsonify({'error': 'Mismatch in sensors'}), 405
     
     body = request.json
     if 'values' not in body:
@@ -113,11 +130,20 @@ def update_data(token):
         })
 
     if len(data) > 100:
-        data = data[-1000:]
+        data = data[-100:]
 
     __write_token_data(token, data)
 
     return jsonify({'success': 'Data successfully updated'}), 200
+
+@app.route('/alive/<token>', methods=['POST'])
+def alive(token):
+    if not __validate_token(token):
+        return jsonify({'error': 'Bad token'}), 405
+    
+    app.TOKENS_SENSOR[token] = (request.remote_addr, datetime.now() + timedelta(minutes=10))
+
+    return jsonify({'success': f'Registered sensor for token {token} for 10 min'}), 200
 
 if __name__ == "__main__":
     app.run()
