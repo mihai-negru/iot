@@ -49,7 +49,9 @@ def generate_token():
 def __validate_token(token):
     with app.TOKENS_LOCK:
         with open(app.TOKENS, 'r') as fin:
-            tokens = fin.readlines()
+            tokens = fin.read()
+
+    tokens = tokens.splitlines()
 
     return token in tokens
 
