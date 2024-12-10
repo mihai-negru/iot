@@ -6,15 +6,26 @@ import json
 from datetime import datetime
 import os
 import uuid
+import shutil
 
 app = Flask(__name__)
 
 app.DATA_FILE = '/var/www/html/iot/data'
-app.TOKENS = f'{app.DATA_FILE}/tokens.json'
-app.TOKENS_LOCK = threading.Lock()
 
-DATA_FILE = '/var/www/html/iot/data/pico.json'
-data_lock = threading.Lock()
+app.TOKENS = f'{app.DATA_FILE}/tokens'
+app.TOKENS_LOCK = threading.Lock()
+app.TOKENS_DATA_LOCKS = {} 
+
+if os.path.exists(app.DATA_FILE):
+    for filename in os.listdir(app.DATA_FILE):
+        file_path = f'{app.DATA_FILE}/{filename}'
+        try:
+            if os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+            else:
+                os.remove(file_path)
+        except Exception:
+            pass
 
 @app.route('/', methods = ['GET'])
 def homepage():
@@ -28,55 +39,80 @@ def generate_token():
         with open(app.TOKENS, 'a') as fout:
             fout.write(f'{new_token}\n')
 
+    app.TOKENS_DATA_LOCK[new_token] = threading.Lock()
+
     return render_template(
         template_name_or_list = 'generated_token.html',
         token = new_token
     )
 
+def __validate_token(token):
+    with app.TOKENS_LOCK:
+        with open(app.TOKENS, 'r') as fin:
+            tokens = fin.readlines()
 
-def read_data():
+    return token in tokens
+
+@app.route('/view', methods = ['GET'])
+def view():
+    token = request.args.get('token')
+
+    if not __validate_token(token):
+        return render_template(
+            template_name_or_list = 'error.html',
+            message = 'Token is not registered'
+        )
+
+    return render_template(
+        template_name_or_list = 'view.html',
+        token = token
+    )
+
+def __read__token_data(token):
     try:
-        with open(DATA_FILE, "r") as file:
-            return json.load(file)
-    except FileNotFoundError:
+        with app.TOKENS_DATA_LOCKS[token]:
+            with open(f'{app.DATA_FILE}/{token}', 'r') as fin:
+                data = json.load(fin)
+
+        return data
+    except Exception:
         return []
     
-def write_data(data):
-    with open(DATA_FILE, "w") as file:
-        return json.dump(data, file)
+def __write_token_data(token, data):
+    with app.TOKENS_DATA_LOCKS[token]:
+        with open(f'{app.DATA_FILE}/{token}', 'w') as fout:
+                json.dump(data, fout)
 
-@app.route('/sensor_data', methods = ['GET'])
-def sensor_data():
-    with data_lock:
-        data = read_data()
+@app.route('/view_data/<token>', methods = ['GET'])
+def view_data(token):
+    if not __validate_token(token):
+        return jsonify({'error': 'Bad token'}), 405
+    
+    data = __read__token_data(token)
+    return jsonify(data), 200
 
-    return jsonify(data)
-
-@app.route('/gas_sensor', methods=['POST'])
-def post_value():
-    content = request.json
-
-    if 'values' not in content:
-        jsonify({"error": "Invalid payload"}), 400
-
-    with data_lock:
-        data = read_data()
-
-    for item in content['values']:
+@app.route('/update_data/<token>', methods = ['POST'])
+def update_data(token):
+    if not __validate_token(token):
+        return jsonify({'error': 'Bad token'}), 405
+    
+    body = request.json
+    if 'values' not in body:
+        return jsonify({'error': 'Expected values list'}), 405
+    
+    data = __read__token_data(token)
+    for item in body['values']:
         data.append({
             'x': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'y': item
         })
 
-    if len(data) > 1000:
+    if len(data) > 100:
         data = data[-1000:]
 
-    with data_lock:
-        write_data(data)
+    __write_token_data(token, data)
 
-    return jsonify({"status": "success"}), 200
-
+    return jsonify({'success': 'Data successfully updated'}), 200
 
 if __name__ == "__main__":
-    os.remove(DATA_FILE)
     app.run()

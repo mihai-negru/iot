@@ -4,7 +4,7 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <title>Gas Sensor Data</title>
+    <title>IoT Dashboard</title>
     <style>
         body {
             display: flex;
@@ -38,8 +38,6 @@
     <script>
         const ctx = document.getElementById('value-chart');
 
-
-        // Initial empty data
         const chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -70,11 +68,14 @@
 
         async function updateChart() {
             try {
-                const response = await axios.get('/sensor_data');
-                const data = response.data;
+                const response = await axios.get('/view_data/{{ token }}');
 
-                chart.data.datasets[0].data = data;
-                chart.update();
+                if (response.status == 200) {
+                    const data = response.data;
+
+                    chart.data.datasets[0].data = data;
+                    chart.update();
+                }
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
@@ -83,5 +84,4 @@
         setInterval(updateChart, 500);
     </script>
 </body>
-
 </html>
