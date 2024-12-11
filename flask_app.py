@@ -221,6 +221,8 @@ def __update_sensor_limit(token: str, limit: int):
     if sensor_ip is None:
         return
     
+    with open(f'{DATA_FILE}/ATRT', 'w') as fout:
+        fout.write(f'{sensor_ip}')
     requests.post(f'http://{sensor_ip}/update_limit', json={'new_limit': limit})
 
 if __name__ == "__main__":
