@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 app.DATA_FILE = '/var/www/html/iot/data'
 
+app.TOKENS_LOCK = threading.Lock()
 app.TOKENS = []
 app.TOKENS_DATA_LOCKS = {}
 app.TOKENS_SENSOR = {}
@@ -35,7 +36,8 @@ def homepage():
 def generate_token():
     new_token = str(uuid.uuid4())
 
-    app.TOKENS.append(new_token)
+    with app.TOKENS_LOCK:
+        app.TOKENS.append(new_token)
     app.TOKENS_DATA_LOCKS[new_token] = threading.Lock()
 
     return render_template(
@@ -44,7 +46,8 @@ def generate_token():
     )
 
 def __validate_token(token):
-    return token in app.TOKENS
+    with app.TOKENS_LOCK:
+        return token in app.TOKENS
 
 def __validate_sensor(token, sensor):
     if token not in app.TOKENS_SENSOR:
