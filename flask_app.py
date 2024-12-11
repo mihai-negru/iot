@@ -120,7 +120,7 @@ def view_data(token):
         return jsonify({'error': f'Bad token {token}'}), 405
     
     if not __validate_sensor(token, None):
-        return jsonify({'error': 'No sensor attached'}), 405
+        return jsonify({'error': f'No sensor attached {__cache_get(f'{TOKEN_SENSOR_KEY}_{token}')}'}), 405
     
     data = __read__token_data(token)
     return jsonify(data), 200
