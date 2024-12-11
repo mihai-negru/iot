@@ -88,7 +88,8 @@ def view():
 
     return render_template(
         template_name_or_list = 'view.html',
-        token = token
+        token = token,
+        limit = 45000
     )
 
 def __read__token_data(token):

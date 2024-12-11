@@ -166,6 +166,7 @@
                     const data = response.data;
 
                     chart.data.datasets[0].data = data;
+                    chart.data.datasets[1].data = new Array(data.length).fill({{ limit }});
                     chart.update();
                 }
             } catch (error) {
