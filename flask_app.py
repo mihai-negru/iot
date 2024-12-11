@@ -107,6 +107,9 @@ def view_data(token):
     data = __read__token_data(token)
     return jsonify(data), 200
 
+def __update_token_sensor_time(token):
+    app.TOKENS_SENSOR[token] = (app.TOKENS_SENSOR[token][0], datetime.now() + timedelta(minutes=10))
+
 @app.route('/update_data/<token>', methods = ['POST'])
 def update_data(token):
     if not __validate_token(token):
@@ -114,6 +117,8 @@ def update_data(token):
     
     if not __validate_sensor(token, request.remote_addr):
         return jsonify({'error': 'Mismatch in sensors'}), 405
+    
+    __update_token_sensor_time(token)
     
     body = request.json
     if 'values' not in body:
