@@ -93,6 +93,25 @@
                         title: {
                             display: true,
                             text: 'Value'
+                        },
+                        min: 0,
+                        max: Math.pow(2, 16) - 1
+                    }
+                },
+                plugins: {
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: 'x', // Allows panning only on the x-axis
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true,
+                            },
+                            mode: 'x', // Allows zooming only on the x-axis
                         }
                     }
                 }
