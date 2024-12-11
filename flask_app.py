@@ -7,6 +7,7 @@ import json
 from datetime import datetime, timedelta
 import uuid
 
+MAX_SENSOR_LIMIT = 2 ** 16
 DEFAULT_SENSOR_LIMIT = 45000
 
 DATA_FILE = '/var/www/html/iot/data'
@@ -92,13 +93,15 @@ def view():
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {token} is not registered'
+            message = f'Token {token} is not registered',
+            back = '/'
         )
     
     if not __validate_sensor(token, None):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {token} has no sensor attached'
+            message = f'Token {token} has no sensor attached',
+            back = '/'
         )
 
     return render_template(
@@ -158,13 +161,15 @@ def sensor_limit(token):
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {token} is not registered'
+            message = f'Token {token} is not registered',
+            back = f'/view?token={token}'
         )
     
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {token} is not registered'
+            message = f'Token {token} is not registered',
+            back = f'/view?token={token}'
         )
     
     return render_template(
@@ -177,19 +182,38 @@ def update_sensor_limit(token):
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {token} is not registered'
+            message = f'Token {token} is not registered',
+            back = f'/update_sensor_limit/{token}'
         )
     
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {token} is not registered'
+            message = f'Token {token} is not registered',
+            back = f'/update_sensor_limit/{token}'
         )
     
     limit = request.args.get('limit')
+
+    try:
+        limit = int(limit)
+
+        if limit >= MAX_SENSOR_LIMIT or limit <= 0:
+            return render_template(
+                template_name_or_list = 'error.html',
+                message = f'Choose a limit between (0: {MAX_SENSOR_LIMIT}]',
+                back = f'/update_sensor_limit/{token}'
+            )
+    except Exception:
+        return render_template(
+            template_name_or_list = 'error.html',
+            message = f'Limit {limit} cannot be converted to int',
+            back = f'/update_sensor_limit/{token}'
+        )
+
     __cache_set(f'{TOKEN_LIMIT_KEY}_{token}', limit)
 
-    return redirect(f'view_data/{token}')
+    return redirect(f'/view?token={token}')
 
 if __name__ == "__main__":
     app.run()
