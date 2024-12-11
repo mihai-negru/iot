@@ -3,6 +3,7 @@
 from flask import Flask, request, render_template, jsonify, redirect
 from flask_caching import Cache
 import threading
+import requests
 import json
 from datetime import datetime, timedelta
 import uuid
@@ -211,8 +212,16 @@ def update_sensor_limit(token):
         )
 
     __cache_set(f'{TOKEN_LIMIT_KEY}_{token}', limit)
+    threading.Thread(target=__update_sensor_limit, args=(token, limit)).start()
 
     return redirect(f'/view?token={token}')
+
+def __update_sensor_limit(token: str, limit: int):
+    sensor_ip = __cache_get(f'{TOKEN_SENSOR_KEY}_{token}')
+    if sensor_ip is None:
+        return
+    
+    requests.post(f'http://{sensor_ip}/update_limit', json={'new_limit': limit})
 
 if __name__ == "__main__":
     app.run()
