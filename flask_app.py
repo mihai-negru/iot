@@ -99,7 +99,7 @@ def __write_token_data(token, data):
 @app.route('/view_data/<token>', methods = ['GET'])
 def view_data(token):
     if not __validate_token(token):
-        return jsonify({'error': 'Bad token'}), 405
+        return jsonify({'error': f'Bad token {token}'}), 405
     
     if not __validate_sensor(token, None):
         return jsonify({'error': 'No sensor attached'}), 405
@@ -113,7 +113,7 @@ def __update_token_sensor_time(token):
 @app.route('/update_data/<token>', methods = ['POST'])
 def update_data(token):
     if not __validate_token(token):
-        return jsonify({'error': 'Bad token'}), 405
+        return jsonify({'error': f'Bad token {token}'}), 405
     
     if not __validate_sensor(token, request.remote_addr):
         return jsonify({'error': 'Mismatch in sensors'}), 405
@@ -141,7 +141,7 @@ def update_data(token):
 @app.route('/alive/<token>', methods=['POST'])
 def alive(token):
     if not __validate_token(token):
-        return jsonify({'error': 'Bad token'}), 405
+        return jsonify({'error': f'Bad token {token}'}), 405
     
     app.TOKENS_SENSOR[token] = (request.remote_addr, datetime.now() + timedelta(minutes=10))
 
