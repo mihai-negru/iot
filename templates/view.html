@@ -4,6 +4,8 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="/var/www/html/iot/node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
     <title>IoT Dashboard</title>
     <style>
         body {
@@ -79,6 +81,12 @@
                     {
                         label: 'Gas Sensor Data',
                         data: [],
+                    },
+                    {
+                        label: '',
+                        data: [],
+                        borderColor: 'rgb(171, 30, 0)',
+                        fill: false,
                     }
                 ]
             },
@@ -95,23 +103,16 @@
                             text: 'Value'
                         },
                         min: 0,
-                        max: Math.pow(2, 16) - 1
+                        max: 70000
                     }
                 },
                 plugins: {
                     zoom: {
-                        pan: {
-                            enabled: true,
-                            mode: 'x', // Allows panning only on the x-axis
-                        },
                         zoom: {
                             wheel: {
                                 enabled: true,
                             },
-                            pinch: {
-                                enabled: true,
-                            },
-                            mode: 'x', // Allows zooming only on the x-axis
+                            mode: 'y',
                         }
                     }
                 }
