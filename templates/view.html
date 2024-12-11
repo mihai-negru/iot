@@ -56,21 +56,45 @@
             font-weight: bold;
             color: #555555;
         }
+
+        .zoom-button {
+            position: absolute;
+            top: 20px;
+            left: 80px;
+            width: 40px;
+            height: 40px;
+            background-color: #ffffff;
+            border: 2px solid #cccccc;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .zoom-button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .zoom-button::before {
+            content: '+';
+            font-size: 18px;
+            font-weight: bold;
+            color: #555555;
+        }
     </style>
 </head>
 
 <body>
     <div class="back-button" onclick="goBack()"></div>
+    <div class="zoom-button" onclick="resetZoom()"></div>
 
     <div class="chart-container">
         <canvas id="value-chart"></canvas>
     </div>
 
     <script>
-        function goBack() {
-            window.location.href = '/';
-        }
-        
         const ctx = document.getElementById('value-chart');
 
         const chart = new Chart(ctx, {
@@ -102,9 +126,7 @@
                         title: {
                             display: true,
                             text: 'Value'
-                        },
-                        min: 0,
-                        max: 70000
+                        }
                     }
                 },
                 plugins: {
@@ -127,6 +149,14 @@
                 }
             }
         });
+
+        function goBack() {
+            window.location.href = '/';
+        }
+        
+        function resetZoom() {
+            chart.resetZoom();
+        }
 
         async function updateChart() {
             try {
