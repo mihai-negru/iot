@@ -1,6 +1,6 @@
 #!/bin/usr/python
 
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, redirect
 from flask_caching import Cache
 import threading
 import json
@@ -161,10 +161,10 @@ def sensor_limit(token):
             message = f'Token {token} is not registered'
         )
     
-    if not __validate_sensor(token, None):
+    if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Token {token} has no sensor attached'
+            message = f'Token {token} is not registered'
         )
     
     return render_template(
@@ -175,15 +175,21 @@ def sensor_limit(token):
 @app.route('/update_sensor_limit/<token>', methods = ['POST'])
 def update_sensor_limit(token):
     if not __validate_token(token):
-        return jsonify({'error': f'Bad token {token}'}), 405
+        return render_template(
+            template_name_or_list = 'error.html',
+            message = f'Token {token} is not registered'
+        )
     
-    if not __validate_sensor(token, None):
-        return jsonify({'error': 'No sensor attached'}), 405
+    if not __validate_token(token):
+        return render_template(
+            template_name_or_list = 'error.html',
+            message = f'Token {token} is not registered'
+        )
     
     limit = request.args.get('limit')
     __cache_set(f'{TOKEN_LIMIT_KEY}_{token}', limit)
 
-    return jsonify({'success': 'success'}), 200
+    return redirect(f'view_data/{token}')
 
 if __name__ == "__main__":
     app.run()
