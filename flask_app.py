@@ -172,7 +172,7 @@ def sensor_limit(token):
         token = token
     )
 
-@app.route('/update_sensor_limit/<token>', mehods = ['POST'])
+@app.route('/update_sensor_limit/<token>', methods = ['POST'])
 def update_sensor_limit(token):
     if not __validate_token(token):
         return jsonify({'error': f'Bad token {token}'}), 405
@@ -187,4 +187,3 @@ def update_sensor_limit(token):
 
 if __name__ == "__main__":
     app.run()
-    
