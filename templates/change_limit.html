@@ -82,7 +82,7 @@
 
         <h3>{{ token }}</h3>
 
-        <form action="/update_sensor_limit/{{ token }}" method="POST">
+        <form action="/update_sensor_limit/{{ token }}" method="GET">
             <label for="limit">Enter new Limit for Sensor:</label><br><br>
             <input type="text" id="limit" name="limit" required>
             <button type="submit">Update Limit</button>

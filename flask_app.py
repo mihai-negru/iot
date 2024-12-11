@@ -183,32 +183,31 @@ def update_sensor_limit(token):
         return render_template(
             template_name_or_list = 'error.html',
             message = f'Token {token} is not registered',
-            back = f'/update_sensor_limit/{token}'
+            back = f'/sensor_limit/{token}'
         )
     
     if not __validate_token(token):
         return render_template(
             template_name_or_list = 'error.html',
             message = f'Token {token} is not registered',
-            back = f'/update_sensor_limit/{token}'
+            back = f'/sensor_limit/{token}'
         )
     
     limit = request.args.get('limit')
 
-    try:
-        limit = int(limit)
-
-        if limit >= MAX_SENSOR_LIMIT or limit <= 0:
-            return render_template(
-                template_name_or_list = 'error.html',
-                message = f'Choose a limit between (0: {MAX_SENSOR_LIMIT}]',
-                back = f'/update_sensor_limit/{token}'
-            )
-    except Exception:
+    if not limit.isnumeric():
+        return render_template(
+                    template_name_or_list = 'error.html',
+                    message = f'Limit {limit} cannot be converted to int',
+                    back = f'/sensor_limit/{token}'
+                )
+            
+    limit = int(limit)
+    if limit >= MAX_SENSOR_LIMIT or limit <= 0:
         return render_template(
             template_name_or_list = 'error.html',
-            message = f'Limit {limit} cannot be converted to int',
-            back = f'/update_sensor_limit/{token}'
+            message = f'Choose a limit between (0: {MAX_SENSOR_LIMIT}]',
+            back = f'/sensor_limit/{token}'
         )
 
     __cache_set(f'{TOKEN_LIMIT_KEY}_{token}', limit)
