@@ -24,18 +24,16 @@ app = Flask(__name__)
 app.config.from_mapping(config)
 cache = Cache(app)
 
-app.DATA_FILE = '/var/www/html/iot/data'
-
-if os.path.exists(DATA_FILE):
-    for filename in os.listdir(DATA_FILE):
-        file_path = f'{DATA_FILE}/{filename}'
-        try:
-            if os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-            else:
-                os.remove(file_path)
-        except Exception:
-            pass
+# if os.path.exists(DATA_FILE):
+#     for filename in os.listdir(DATA_FILE):
+#         file_path = f'{DATA_FILE}/{filename}'
+#         try:
+#             if os.path.isdir(file_path):
+#                 shutil.rmtree(file_path)
+#             else:
+#                 os.remove(file_path)
+#         except Exception:
+#             pass
 
 def __cache_get(key):
     value = cache.get(key)
