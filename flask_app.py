@@ -177,7 +177,7 @@ def sensor_limit(token):
         token = token
     )
 
-@app.route('/update_sensor_limit/<token>', methods = ['POST'])
+@app.route('/update_sensor_limit/<token>', methods = ['GET'])
 def update_sensor_limit(token):
     if not __validate_token(token):
         return render_template(
