@@ -7,6 +7,8 @@ import requests
 import json
 from datetime import datetime, timedelta
 import uuid
+import smtplib
+from email.mime.text import MIMEText
 
 MAX_SENSOR_LIMIT = 2 ** 16
 DEFAULT_SENSOR_LIMIT = 45000
@@ -16,6 +18,9 @@ TOKEN_KEY = 'TOKENS'
 TOKEN_SENSOR_KEY = 'TOKEN_SENSOR'
 TOKEN_DATA_KEY = 'TOKEN_DATA'
 TOKEN_LIMIT_KEY = 'TOKEN_LIMIT'
+TOKEN_LIMIT_MODIFIED_KEY = 'TOKEN_LIMIT_MODIFIED'
+TOKEN_EMAIL_KEY = 'TOKEN_EMAIL'
+TOKEN_NOTIFIED_KEY = 'TOKEN_NOTIFIED'
 
 config = {
     'CACHE_TYPE': 'FileSystemCache',
@@ -65,6 +70,32 @@ def __write_token_data(token, data):
 def __update_token_sensor_time(token, sensor_ip):
     __cache_set(f'{TOKEN_SENSOR_KEY}_{token}', sensor_ip, timeout=600)
 
+def __send_email(token, limit):
+    notified = __cache_get(f'{TOKEN_NOTIFIED_KEY}_{token}')
+    if notified is not None:
+        notified_date = datetime.strptime(notified, '%Y-%m-%d %H:%M:%S')
+        if notified_date + timedelta(minutes=10) >= datetime.now():
+            return
+        
+        __cache_set(f'{TOKEN_NOTIFIED_KEY}_{token}', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+    content = __cache_get(f'{TOKEN_EMAIL_KEY}_{token}')
+    if content is None:
+        return
+    
+    email = content['email']
+    password = content['password']
+
+    msg = MIMEText(f'Sensor attached to token {token} has reached its limit: {limit}')
+    msg['Subject'] = 'Sensor Limit Reached'
+    msg['From'] = email
+    msg['To'] = email
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        server.login(email, password)
+        server.sendmail(email, email, msg.as_string())
+
+
 @app.route('/', methods = ['GET'])
 def homepage():
     return render_template(template_name_or_list = 'index.html')
@@ -85,6 +116,28 @@ def generate_token():
     return render_template(
         template_name_or_list = 'generated_token.html',
         token = new_token
+    )
+
+@app.route('/notify/email', methods = ['POST'])
+def notify_email():
+    token = request.args.get('token')
+
+    if not __validate_token(token):
+        return render_template(
+            template_name_or_list = 'error.html',
+            message = f'Token {token} is not registered',
+            back = '/'
+        )
+    
+    email = request.args.get('email')
+    password = request.args.get('password')
+
+    __cache_set(f'{TOKEN_EMAIL_KEY}_{token}', {'email': email, 'password': password})
+
+    return render_template(
+        template_name_or_list = 'ok.html',
+        message = f'Email {email} successfully registered',
+        back = '/'
     )
 
 @app.route('/view', methods = ['GET'])
@@ -147,10 +200,18 @@ def update_data(token):
     __write_token_data(token, data)
 
     response = {'success': 'Data successfully updated'}
-    limit = __cache_get(f'{TOKEN_LIMIT_KEY}_{token}')
+    limit = __cache_get(f'{TOKEN_LIMIT_MODIFIED_KEY}_{token}')
     if limit is not None:
         response['update'] = limit
-        cache.delete(f'{TOKEN_LIMIT_KEY}_{token}')
+        cache.delete(f'{TOKEN_LIMIT_MODIFIED_KEY}_{token}')
+    else:
+        limit = __cache_get(f'{TOKEN_LIMIT_KEY}_{token}')
+
+    try:
+        if float(body['value']) >= limit:
+            threading.Thread(target = __send_email, args = (token, limit)).start()
+    except:
+        pass
 
     return jsonify(response), 200
 
@@ -218,6 +279,7 @@ def update_sensor_limit(token):
         )
 
     __cache_set(f'{TOKEN_LIMIT_KEY}_{token}', limit)
+    __cache_set(f'{TOKEN_LIMIT_MODIFIED_KEY}_{token}', limit)
 
     return redirect(f'/view?token={token}')
 
