@@ -77,7 +77,7 @@ def __send_email(token, limit):
         if notified_date + timedelta(minutes=10) >= datetime.now():
             return
         
-        __cache_set(f'{TOKEN_NOTIFIED_KEY}_{token}', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    __cache_set(f'{TOKEN_NOTIFIED_KEY}_{token}', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
     content = __cache_get(f'{TOKEN_EMAIL_KEY}_{token}')
     if content is None:
