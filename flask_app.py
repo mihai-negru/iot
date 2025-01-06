@@ -118,7 +118,7 @@ def generate_token():
         token = new_token
     )
 
-@app.route('/notify/email', methods = ['POST'])
+@app.route('/notify/email', methods = ['GET'])
 def notify_email():
     token = request.args.get('token')
 
